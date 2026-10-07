@@ -1,0 +1,34 @@
+
+{
+  "name": "library-catalog-service",
+  "version": "1.0.0",
+  "description": "Data layer for a library platform: Mongoose schemas and a seed script for books and genres.",
+  "main": "seed.js",
+  "scripts": {
+    "seed": "node seed.js"
+  },
+  "keywords": [],
+  "author": "Solomon Njapit",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "dotenv": "^18.0.6",
+    "mongoose": "^9.11.0"
+  }
+}{
+  "name": "library-catalog-service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "dotenv": "^18.0.6",
+    "mongoose": "^9.11.0"
+  }
+}
