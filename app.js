@@ -1,6 +1,7 @@
 const express = require('express');
 const errorHandler = require('./middleware/errorHandler');
 const genreRoutes = require('./routes/genres');
+const bookRoutes = require('./routes/books');
 
 const app = express();
 
@@ -11,6 +12,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/genres', genreRoutes);
+app.use('/books', bookRoutes);
 
 // Unknown route -> JSON 404
 app.use((req, res) => {
