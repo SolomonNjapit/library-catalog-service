@@ -1,5 +1,6 @@
 const express = require('express');
 const errorHandler = require('./middleware/errorHandler');
+const genreRoutes = require('./routes/genres');
 
 const app = express();
 
@@ -9,7 +10,7 @@ app.get('/', (req, res) => {
   res.json({ message: 'Library Catalog API is running' });
 });
 
-// Routes will be mounted here as we build them
+app.use('/genres', genreRoutes);
 
 // Unknown route -> JSON 404
 app.use((req, res) => {
