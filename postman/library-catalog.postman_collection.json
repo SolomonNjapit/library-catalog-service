@@ -1,0 +1,216 @@
+{
+  "info": {
+    "name": "Library Catalog API",
+    "description": "Genres and Books endpoints for library-catalog-service. Run the folders in order with the Collection Runner.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "genreId", "value": "6ac63ea6e89c05f9214efd78" },
+    { "key": "newGenreId", "value": "" },
+    { "key": "newBookId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Genres",
+      "item": [
+        {
+          "name": "List genres",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 200', function () { pm.response.to.have.status(200); });"] } }],
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/genres", "host": ["{{baseUrl}}"], "path": ["genres"] } }
+        },
+        {
+          "name": "Create genre",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 201', function () { pm.response.to.have.status(201); });", "pm.collectionVariables.set('newGenreId', pm.response.json()._id);"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"name\":\"Postman Test Genre\",\"slug\":\"postman-test-genre\"}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/genres", "host": ["{{baseUrl}}"], "path": ["genres"] }
+          }
+        },
+        {
+          "name": "Get genre by id",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 200', function () { pm.response.to.have.status(200); });"] } }],
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/genres/{{newGenreId}}", "host": ["{{baseUrl}}"], "path": ["genres", "{{newGenreId}}"] } }
+        },
+        {
+          "name": "Update genre",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 200', function () { pm.response.to.have.status(200); });"] } }],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"name\":\"Postman Test Genre Updated\",\"slug\":\"postman-test-genre-updated\"}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/genres/{{newGenreId}}", "host": ["{{baseUrl}}"], "path": ["genres", "{{newGenreId}}"] }
+          }
+        },
+        {
+          "name": "Get genre - not found (404)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 404', function () { pm.response.to.have.status(404); });"] } }],
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/genres/000000000000000000000000", "host": ["{{baseUrl}}"], "path": ["genres", "000000000000000000000000"] } }
+        },
+        {
+          "name": "Create genre - validation error (400)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 400', function () { pm.response.to.have.status(400); });"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/genres", "host": ["{{baseUrl}}"], "path": ["genres"] }
+          },
+          "response": [
+            {
+              "name": "400 - missing name and slug",
+              "originalRequest": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{}", "options": { "raw": { "language": "json" } } },
+                "url": { "raw": "{{baseUrl}}/genres", "host": ["{{baseUrl}}"], "path": ["genres"] }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json; charset=utf-8" }],
+              "body": "{\"message\":\"Validation failed\",\"errors\":[{\"field\":\"name\",\"message\":\"name is required\"},{\"field\":\"slug\",\"message\":\"slug is required\"}]}"
+            }
+          ]
+        },
+        {
+          "name": "Delete genre - blocked, books still use it (409)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 409', function () { pm.response.to.have.status(409); });"] } }],
+          "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/genres/{{genreId}}", "host": ["{{baseUrl}}"], "path": ["genres", "{{genreId}}"] } }
+        },
+        {
+          "name": "Delete genre",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 200', function () { pm.response.to.have.status(200); });"] } }],
+          "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/genres/{{newGenreId}}", "host": ["{{baseUrl}}"], "path": ["genres", "{{newGenreId}}"] } }
+        }
+      ]
+    },
+    {
+      "name": "Books",
+      "item": [
+        {
+          "name": "List books",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 200', function () { pm.response.to.have.status(200); });", "pm.test('Has pagination fields', function () { var j = pm.response.json(); pm.expect(j).to.have.property('totalCount'); pm.expect(j).to.have.property('totalPages'); });"] } }],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/books?page=1&limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["books"],
+              "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "5" }]
+            }
+          }
+        },
+        {
+          "name": "List books - genre + search + pagination",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 200', function () { pm.response.to.have.status(200); });"] } }],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/books?genre={{genreId}}&search=karen&page=1&limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["books"],
+              "query": [
+                { "key": "genre", "value": "{{genreId}}" },
+                { "key": "search", "value": "karen" },
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "5" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create book",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 201', function () { pm.response.to.have.status(201); });", "pm.collectionVariables.set('newBookId', pm.response.json()._id);"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"title\":\"Postman Test Book\",\"author\":\"Postman Author\",\"isbn\":\"9780000000099\",\"totalCopies\":5,\"availableCopies\":5,\"genre\":\"{{genreId}}\"}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/books", "host": ["{{baseUrl}}"], "path": ["books"] }
+          }
+        },
+        {
+          "name": "Get book by id",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 200', function () { pm.response.to.have.status(200); });"] } }],
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/books/{{newBookId}}", "host": ["{{baseUrl}}"], "path": ["books", "{{newBookId}}"] } }
+        },
+        {
+          "name": "Update book",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 200', function () { pm.response.to.have.status(200); });"] } }],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"title\":\"Postman Test Book Updated\",\"author\":\"Postman Author\",\"isbn\":\"9780000000099\",\"totalCopies\":5,\"availableCopies\":4,\"genre\":\"{{genreId}}\"}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/books/{{newBookId}}", "host": ["{{baseUrl}}"], "path": ["books", "{{newBookId}}"] }
+          }
+        },
+        {
+          "name": "Create book - validation error, empty body (400)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 400', function () { pm.response.to.have.status(400); });"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/books", "host": ["{{baseUrl}}"], "path": ["books"] }
+          },
+          "response": [
+            {
+              "name": "400 - empty body",
+              "originalRequest": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{}", "options": { "raw": { "language": "json" } } },
+                "url": { "raw": "{{baseUrl}}/books", "host": ["{{baseUrl}}"], "path": ["books"] }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json; charset=utf-8" }],
+              "body": "{\"message\":\"Validation failed\",\"errors\":[{\"field\":\"title\",\"message\":\"title is required\"},{\"field\":\"author\",\"message\":\"author is required\"},{\"field\":\"isbn\",\"message\":\"isbn is required\"},{\"field\":\"totalCopies\",\"message\":\"totalCopies is required\"},{\"field\":\"availableCopies\",\"message\":\"availableCopies is required\"},{\"field\":\"genre\",\"message\":\"genre is required\"}]}"
+            }
+          ]
+        },
+        {
+          "name": "Create book - validation error, wrong types + unknown genre (400)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 400', function () { pm.response.to.have.status(400); });"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\"title\":123,\"author\":\"Test Author\",\"isbn\":\"9780000000001\",\"totalCopies\":\"five\",\"availableCopies\":3,\"genre\":\"000000000000000000000000\"}", "options": { "raw": { "language": "json" } } },
+            "url": { "raw": "{{baseUrl}}/books", "host": ["{{baseUrl}}"], "path": ["books"] }
+          },
+          "response": [
+            {
+              "name": "400 - wrong types and genre does not exist",
+              "originalRequest": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\"title\":123,\"author\":\"Test Author\",\"isbn\":\"9780000000001\",\"totalCopies\":\"five\",\"availableCopies\":3,\"genre\":\"000000000000000000000000\"}", "options": { "raw": { "language": "json" } } },
+                "url": { "raw": "{{baseUrl}}/books", "host": ["{{baseUrl}}"], "path": ["books"] }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [{ "key": "Content-Type", "value": "application/json; charset=utf-8" }],
+              "body": "{\"message\":\"Validation failed\",\"errors\":[{\"field\":\"title\",\"message\":\"title must be a non-empty string\"},{\"field\":\"totalCopies\",\"message\":\"totalCopies must be a whole number of 0 or more\"},{\"field\":\"genre\",\"message\":\"genre does not exist\"}]}"
+            }
+          ]
+        },
+        {
+          "name": "Get book - not found (404)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 404', function () { pm.response.to.have.status(404); });"] } }],
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/books/000000000000000000000000", "host": ["{{baseUrl}}"], "path": ["books", "000000000000000000000000"] } }
+        },
+        {
+          "name": "Delete book",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Status is 200', function () { pm.response.to.have.status(200); });"] } }],
+          "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/books/{{newBookId}}", "host": ["{{baseUrl}}"], "path": ["books", "{{newBookId}}"] } }
+        }
+      ]
+    }
+  ]
+}
