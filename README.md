@@ -152,3 +152,43 @@ I considered a separate `Copy` collection with one document per physical copy. T
 
 **`genre`: reference (`ObjectId`, `ref: 'Genre'`).**
 This is the one field I deliberately did not embed. A genre is shared by many books, so embedding its name and slug would copy them into every book document. Renaming a genre or fixing a typo would then mean updating many books, and inconsistent copies like "Sci-Fi" and "Science Fiction" could creep in. A reference stores the genre once, keeps the slug unique, and lets the app list genres on their own for a filter menu. The trade-off is read speed: showing a genre name next to a book needs `populate('genre')`, which is a second query. I accepted that because genres are few and small. Each book has exactly one genre, so this is a single reference and not an array. If books ever need several genres, it would change to an array of `ObjectId`s.
+
+## Authentication and Roles
+
+Users register and log in with email and password. Passwords are hashed with bcrypt (via `bcryptjs`) before they are saved, and the password field is never returned in API responses. There are two roles: `patron` (the default) and `librarian`. The role is never read from the request body, so nobody can register as a librarian.
+
+| Method | Endpoint | Access | Description |
+| --- | --- | --- | --- |
+| POST | `/api/auth/register` | Public | Create a patron account |
+| POST | `/api/auth/login` | Public | Verify credentials and set the token cookie |
+| POST | `/api/auth/logout` | Public | Clear the token cookie |
+| GET | `/api/users/profile` | Logged in | Returns the caller's own data |
+| POST, PUT, DELETE | `/books` | Librarian only | Create, update, delete books |
+| GET | `/books`, `/genres` | Public | Browse the catalog |
+
+Responses for protected routes: no token returns **401**, a valid patron token returns **403**, and a valid librarian token succeeds.
+
+`GET /api/users/profile` takes the user from the verified token (`req.user`). It never reads a user id from the query string or body.
+
+### Test librarian account
+
+Run `node seedUser.js` to create exactly one librarian (any existing librarian is replaced, so it is safe to run again).
+
+- Email: `librarian@library.test`
+- Password: `Librarian@2026`
+
+The password is stored hashed in the database. It appears in plain text only here and in `seedUser.js`, because this is a test account for grading.
+
+### Environment variables
+
+Copy `.env.example` to `.env` and fill in `MONGODB_URI` and `JWT_SECRET`. `JWT_EXPIRES_IN` defaults to `1d`.
+
+## Token Storage
+
+**Choice:** the JWT is stored in an **httpOnly cookie** (`httpOnly`, `sameSite=strict`, and `secure` in production), not in `localStorage`.
+
+**Why:** JavaScript running in the page cannot read an httpOnly cookie. If an attacker manages to inject a script (an XSS attack), they cannot steal the token. A token in `localStorage` can be read by any script on the page, so one XSS bug exposes every user's session. The browser also sends the cookie automatically, so the frontend code never handles the token.
+
+**Trade-off:** cookies are sent automatically, which opens the door to CSRF (cross-site request forgery), where another site tricks the browser into sending a request with the user's cookie. I reduce this with `SameSite=Strict`, which stops the browser from sending the cookie on cross-site requests. A production app should also add CSRF tokens. Cookies also need extra CORS setup (`credentials: true` and an explicit origin) if the frontend runs on a different domain. `localStorage` is simpler to use across origins, but it gives up the XSS protection.
+
+**Logout:** logout clears the cookie on the client. The server does not keep a token blocklist, so a copy of the token that someone already stole would stay valid until it expires (1 day). A blocklist or short-lived tokens with refresh tokens would close that gap, at the cost of more complexity.
