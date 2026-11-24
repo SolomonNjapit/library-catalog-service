@@ -5,6 +5,8 @@ const genreRoutes = require('./routes/genres');
 const bookRoutes = require('./routes/books');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
+const borrowRequestRoutes = require('./routes/borrowRequests');
+const bookingRoutes = require('./routes/bookings');
 
 const app = express();
 
@@ -17,6 +19,8 @@ app.get('/', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/borrow-requests', borrowRequestRoutes);
+app.use('/api/bookings', bookingRoutes);
 app.use('/genres', genreRoutes);
 app.use('/books', bookRoutes);
 

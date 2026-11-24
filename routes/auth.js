@@ -24,6 +24,7 @@ router.post('/register', async (req, res, next) => {
     // Role is NEVER taken from the request body, so nobody can self-register as a librarian
     const user = await User.create({ username, email, password, role: 'patron' });
 
+    res.cookie('token', signToken(user), cookieOptions);
     res.status(201).json({ message: 'Account created', user });
   } catch (err) {
     if (err.code === 11000) {

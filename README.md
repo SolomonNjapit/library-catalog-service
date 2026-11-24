@@ -165,10 +165,36 @@ Users register and log in with email and password. Passwords are hashed with bcr
 | GET | `/api/users/profile` | Logged in | Returns the caller's own data |
 | POST, PUT, DELETE | `/books` | Librarian only | Create, update, delete books |
 | GET | `/books`, `/genres` | Public | Browse the catalog |
+| POST | `/api/borrow-requests` | Logged in | Request an available book |
+| GET | `/api/borrow-requests/mine` | Logged in | List the caller's requests |
+| GET | `/api/borrow-requests` | Librarian only | List all borrow requests |
+| PATCH | `/api/borrow-requests/:id` | Librarian only | Change request status or due date |
+| POST | `/api/bookings` | Logged in | Book a space and time |
+| GET | `/api/bookings` | Librarian only | List all space bookings |
 
 Responses for protected routes: no token returns **401**, a valid patron token returns **403**, and a valid librarian token succeeds.
 
 `GET /api/users/profile` takes the user from the verified token (`req.user`). It never reads a user id from the query string or body.
+
+### Borrow requests
+
+Send `{ "bookId": "<book ObjectId>" }` to `POST /api/borrow-requests`. The user always comes from the signed-in session. The API atomically decrements `availableCopies` only when at least one copy remains; a missing book is `404`, and an unavailable or duplicate active request is `409`. A failed request creation restores the copy count.
+
+Librarians can set `status` to `pending`, `approved`, `late`, or `returned` with `PATCH /api/borrow-requests/:id`. They may also update `dueAt`; the fine is never accepted from the request body. On the first transition to `returned`, the server records `returnedAt`, charges **$0.25 for each started 24-hour period after `dueAt`** (so four days late is `$1.00`), clears the active-request lock, and restores one available copy. A second return is rejected with `409`.
+
+### Space bookings
+
+Send `{ "space", "date", "startTime", "endTime" }` to `POST /api/bookings`. Dates use `YYYY-MM-DD`; times use 24-hour `HH:MM`. For the same space and date, an existing booking conflicts when `existing.startTime < requested.endTime` **and** `existing.endTime > requested.startTime`. This rejects partial overlaps, contained ranges, and exact duplicates. The strict comparisons allow one booking to start exactly when another ends. Conflicts return `409`; the check runs on the server.
+
+### Local API test
+
+The borrow and booking integration test requires an isolated local MongoDB database whose name contains `test`:
+
+```bash
+MONGODB_TEST_URI=mongodb://127.0.0.1:27017/library_catalog_test npm run test:api
+```
+
+The test refuses non-local MongoDB hosts and removes only the named test database. It covers zero-copy and duplicate borrow requests, inventory restoration, librarian-only updates, server-computed fines, partial/contained/exact booking overlaps, and adjacent bookings.
 
 ### Test librarian account
 
